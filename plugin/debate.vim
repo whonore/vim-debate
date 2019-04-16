@@ -62,13 +62,22 @@ function! s:arg_uniq(bang)
   call s:update_args(l:args, index(l:args, l:arg), a:bang)
 endfunction
 
+" Reverse the argument list.
+function! s:arg_reverse(bang)
+  let l:idx = argc() - argidx() - 1
+  let l:args = reverse(argv())
+  call s:update_args(l:args, l:idx, a:bang)
+endfunction
+
 command! -bang -bar -range -addr=arguments DebateSwap call s:arg_swap(<line1>, <line2>, <bang>0)
 command! -bang -bar DebateSwapPrev .-1DebateSwap<bang>
 command! -bang -bar DebateSwapNext .+1DebateSwap<bang>
 command! -bang -bar DebateUniq call s:arg_uniq(<bang>0)
+command! -bang -bar DebateReverse call s:arg_reverse(<bang>0)
 
 nnoremap <leader>an :DebateSwapNext<CR>
 nnoremap <leader>aN :DebateSwapPrev<CR>
 nnoremap <leader>au :DebateUniq<CR>
+nnoremap <leader>ar :DebateReverse<CR>
 
 " vim:set sw=2:
