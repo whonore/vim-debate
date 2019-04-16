@@ -7,7 +7,7 @@ let g:loaded_debate = 1
 " Swap xs[i] and xs[j] in place.
 function! s:swap(xs, i, j)
   let l:max = len(a:xs)
-  if !(0 <= a:i && a:i < l:max) || !(0 <= a:j && a:j < l:max) || a:i == a:j
+  if !(0 <= a:i && a:i < l:max) || !(0 <= a:j && a:j < l:max)
     return []
   end
 
@@ -35,9 +35,9 @@ function! s:update_args(args, arg, bang) abort
 
   if a:args != []
     execute 'args' . l:bang . ' ' . join(a:args, ' ')
-    if a:arg != -1
-      execute a:arg + 1 . 'argument' . l:bang
-    endif
+  endif
+  if a:arg != -1
+    execute a:arg + 1 . 'argument' . l:bang
   endif
 endfunction
 
@@ -51,8 +51,10 @@ function! s:arg_swap(from, to, bang)
     let l:from = argidx()
   endif
 
-  let l:args = s:swap(argv(), l:from, l:to)
-  call s:update_args(l:args, l:to, a:bang)
+  if l:from != l:to
+    let l:args = s:swap(argv(), l:from, l:to)
+    call s:update_args(l:args, l:to, a:bang)
+  endif
 endfunction
 
 " Remove duplicates from the argument list.
@@ -69,15 +71,33 @@ function! s:arg_reverse(bang)
   call s:update_args(l:args, l:idx, a:bang)
 endfunction
 
+" Remove the current file from the argument list and edit the next in the list.
+function! s:arg_delete(bang)
+  let l:idx = argidx()
+  .argdelete
+  let l:nargs = argc()
+
+  " Don't change files if the argument list is empty
+  if l:nargs == 0
+    let l:idx = -1
+  else
+    " Move forward up to the last argument
+    let l:idx = min([l:idx, l:nargs - 1])
+  endif
+  call s:update_args([], l:idx, a:bang)
+endfunction
+
 command! -bang -bar -range -addr=arguments DebateSwap call s:arg_swap(<line1>, <line2>, <bang>0)
 command! -bang -bar DebateSwapPrev .-1DebateSwap<bang>
 command! -bang -bar DebateSwapNext .+1DebateSwap<bang>
 command! -bang -bar DebateUniq call s:arg_uniq(<bang>0)
 command! -bang -bar DebateReverse call s:arg_reverse(<bang>0)
+command! -bang -bar DebateDelete call s:arg_delete(<bang>0)
 
-nnoremap <leader>an :DebateSwapNext<CR>
-nnoremap <leader>aN :DebateSwapPrev<CR>
-nnoremap <leader>au :DebateUniq<CR>
-nnoremap <leader>ar :DebateReverse<CR>
+nnoremap <silent> <leader>an :DebateSwapNext<CR>
+nnoremap <silent> <leader>aN :DebateSwapPrev<CR>
+nnoremap <silent> <leader>au :DebateUniq<CR>
+nnoremap <silent> <leader>ar :DebateReverse<CR>
+nnoremap <silent> <leader>ad :DebateDelete<CR>
 
 " vim:set sw=2:
