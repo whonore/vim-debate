@@ -87,6 +87,7 @@ function! s:arg_delete(bang)
   call s:update_args([], l:idx, a:bang)
 endfunction
 
+" Argument list manipulations
 command! -bang -bar -range -addr=arguments DebateSwap call s:arg_swap(<line1>, <line2>, <bang>0)
 command! -bang -bar DebateSwapPrev .-1DebateSwap<bang>
 command! -bang -bar DebateSwapNext .+1DebateSwap<bang>
@@ -99,5 +100,36 @@ nnoremap <silent> <leader>aN :DebateSwapPrev<CR>
 nnoremap <silent> <leader>au :DebateUniq<CR>
 nnoremap <silent> <leader>ar :DebateReverse<CR>
 nnoremap <silent> <leader>ad :DebateDelete<CR>
+
+let s:domap = 1
+let s:arrows = ['<C-Left>', '<C-Right>', '<C-Up>', '<C-Down>', 'A', 'B', 'C', 'D']
+for s:arrow in s:arrows
+  if s:arrow =~ '^[ABCD]$'
+    let s:arrow = '<ESC>[1;5' . s:arrow
+  endif
+  if maparg(s:arrow, 'n') != ''
+    let s:domap = 0
+    break
+  endif
+endfor
+if s:domap
+  " Make ctrl-arrows switch between args
+  nnoremap <C-Left> :previous<CR>
+  nnoremap <C-Right> :next<CR>
+  nnoremap <C-Up> :first<CR>
+  nnoremap <C-Down> :last<CR>
+
+  " Make ctrl-arrows work in screen
+  nnoremap <ESC>[1;5D :previous<CR>
+  nnoremap <ESC>[1;5C :next<CR>
+  nnoremap <ESC>[1;5A :first<CR>
+  nnoremap <ESC>[1;5B :last<CR>
+endif
+
+" Make gf and friends put the file on the arglist
+nnoremap gf gf:argedit %<CR>
+vnoremap gf gf:argedit %<CR>
+nnoremap gF gF:argedit %<CR>
+vnoremap gF gF:argedit %<CR>
 
 " vim:set sw=2:
