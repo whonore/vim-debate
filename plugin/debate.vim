@@ -87,6 +87,18 @@ function! s:arg_delete(bang)
   call s:update_args([], l:idx, a:bang)
 endfunction
 
+" Add the current file to the argument list if it isn't already there and
+" switch to it.
+function! s:arg_add(bang)
+  let l:idx = index(argv(), expand('%'))
+  if l:idx == -1
+    argadd %
+    let l:idx = argidx() + 1
+  endif
+
+  call s:update_args([], l:idx, a:bang)
+endfunction
+
 " Argument list manipulations
 command! -bang -bar -range -addr=arguments DebateSwap call s:arg_swap(<line1>, <line2>, <bang>0)
 command! -bang -bar DebateSwapPrev .-1DebateSwap<bang>
@@ -94,12 +106,14 @@ command! -bang -bar DebateSwapNext .+1DebateSwap<bang>
 command! -bang -bar DebateUniq call s:arg_uniq(<bang>0)
 command! -bang -bar DebateReverse call s:arg_reverse(<bang>0)
 command! -bang -bar DebateDelete call s:arg_delete(<bang>0)
+command! -bang -bar DebateAdd call s:arg_add(<bang>0)
 
 nnoremap <silent> <leader>an :DebateSwapNext<CR>
 nnoremap <silent> <leader>aN :DebateSwapPrev<CR>
 nnoremap <silent> <leader>au :DebateUniq<CR>
 nnoremap <silent> <leader>ar :DebateReverse<CR>
 nnoremap <silent> <leader>ad :DebateDelete<CR>
+nnoremap <silent> <leader>aa :DebateAdd<CR>
 
 let s:domap = 1
 let s:arrows = ['<C-Left>', '<C-Right>', '<C-Up>', '<C-Down>', 'A', 'B', 'C', 'D']
